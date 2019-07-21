@@ -1,207 +1,131 @@
 package main
 
 import (
-"fmt"
-// "io/ioutil"
-// "log"
-// "net/http"
+	"fmt"
+	"io/ioutil"
+	"net/http"
 
-"github.com/gin-gonic/gin"
+	// "io/ioutil"
+	// "log"
+	// "net/http"
+
+	"github.com/gin-gonic/gin"
 )
 
-type userGeo struct {
-Lat string
-Lng string
-}
-
-type userAddress struct {
-Street string
-Suit string
-City string
-Zipcode string
-Geo userGeo
-}
-
-type userCompany struct {
-Name string
-CatchPhrase string
-Bs string
-}
-
 type user struct {
-ID int
-Name string
-Username string
-Email string
-Address userAddress
-Phone string
-Website string
-Company userCompany
-}
-
-type addressBook struct {
-Firstname string
-Lastname string
-Code string
-Phone string
+	ID       int    `json:"id"`
+	Name     string `json:"name"`
+	Username string `json:"username"`
+	Email    string `json:"email"`
+	Address  struct {
+		Street  string `json:"street"`
+		Suite   string `json:"suite"`
+		City    string `json:"city"`
+		Zipcode string `json:"zipcode"`
+		Geo     struct {
+			Lat string `json:"lat"`
+			Lng string `json:"lng"`
+		} `json:"geo"`
+	} `json:"address"`
+	Phone   string `json:"phone"`
+	Website string `json:"website"`
+	Company struct {
+		Name        string `json:"name"`
+		CatchPhrase string `json:"catchPhrase"`
+		Bs          string `json:"bs"`
+	} `json:"company"`
 }
 
 var router = gin.Default()
 
 func main() {
 
-handleRequest()
-router.Run()
+	handleRequest()
+	router.Run()
 }
 
 func handleRequest() {
 
-router.GET("/", home)
-router.GET("/users", getUser)
-router.GET("/users/:id", get)
-// router.GET("/users/:id/:id2", getSecondUser)
-
+	router.GET("/", home)
+	router.GET("/users", getUser)
+	router.GET("/users/:id", getOneUser)
+	// router.GET("/users/:id1/:id2", getTwoUser)
 }
 
 func home(c *gin.Context) {
-fmt.Fprintf(c.Writer, "Saksit Jantaraplin")
+	fmt.Fprintf(c.Writer, "Saksit Jantaraplin")
 }
 
 func getUser(c *gin.Context) {
+	req, err := http.Get("https://jsonplaceholder.typicode.com/users/")
+	if err != nil {
+		fmt.Println(err)
+	}
+	defer req.Body.Close()
 
-// userLists := []user{}
-// userDetail1 := user{
-// Id: 1,
-// Name: "Saksit Jantaraplin",
-// Username: "Toey",
-// Email: "saksit.ja@kbtg.tech",
-// Address: userAddress{
-// Street: "fwfasdsdw",
-// Suit: "dsfdsgds",
-// City: "afsafsa",
-// Zipcode: "aadsa",
-// Geo: userGeo{
-// Lat: -123,
-// Lng: 456,
-// },
-// },
-// Phone: "345435435",
-// Website: "ofokslkdsf",
-// Company: userCompany{
-// Name: "a;;lsakd",
-// CatchPhrase: "lkaklflksdfj",
-// Bs: "ksjfshgid",
-// },
-// }
-
-// userDetail2 := user{
-// Id: 2,
-// Name: "Teerapat Voradanunt",
-// Username: "Boat",
-// Email: "teerapat.vo@kbtg.tech",
-// Address: userAddress{
-// Street: "fwfasdsdw",
-// Suit: "dsfdsgds",
-// City: "afsafsa",
-// Zipcode: "aadsa",
-// Geo: userGeo{
-// Lat: -123,
-// Lng: 456,
-// },
-// },
-// Phone: "345435435",
-// Website: "ofokslkdsf",
-// Company: userCompany{
-// Name: "a;;lsakd",
-// CatchPhrase: "lkaklflksdfj",
-// Bs: "ksjfshgid",
-// },
-// }
-
-// userLists = append(userLists, userDetail1)
-// userLists = append(userLists, userDetail2)
-
-// userID := r.URL.Path[len("/users/"):]
-// if userID == "" {
-
-// userListsJSON, err := json.Marshal(userLists)
-
-// if err != nil {
-// fmt.Println(err)
-// }
-
-// fmt.Fprintf(w, string(userListsJSON))
-
-// } else {
-
-// for index := 0; index < len(userLists); index++ {
-
-// if userID == strconv.Itoa(userLists[index].Id) {
-// json.NewEncoder(w).Encode(userLists[index])
-// }
-
-// }
-// }
-
-userID := c.Param("id")
-userID2 := c.Param("id2")
-fmt.Fprintf(c.Writer, getJSON(userID, userID2))
+	response, err := ioutil.ReadAll(req.Body)
+	if err != nil {
+		fmt.Println(err)
+	}
+	fmt.Fprintf(c.Writer, string(response))
 }
 
-func getSecondUser(c *gin.Context) {
-userID1 := c.Param("id")
-userID2 := c.Param("id2")
-fmt.Fprintf(c.Writer, getJSON(userID1, userID2))
+func getOneUser(c *gin.Context) {
+
+	userID := c.Param("id")
+	req, err := http.Get("https://jsonplaceholder.typicode.com/users/" + userID)
+	if err != nil {
+		fmt.Println(err)
+	}
+	defer req.Body.Close()
+
+	response, err := ioutil.ReadAll(req.Body)
+	if err != nil {
+		fmt.Println(err)
+	}
+	fmt.Fprintf(c.Writer, string(response))
 }
 
-func getJSON(userID1, userID2 string) string {
+// func getTwoUser(c *gin.Context) {
 
-return userID1 + " - " + userID2
+// 	userID1 := c.Param("id1")
+// 	req1, err := http.Get("https://jsonplaceholder.typicode.com/users/" + userID1)
+// 	if err != nil {
+// 		fmt.Println(err)
+// 	}
 
-// if userID2 == "" {
-// req, err := http.Get("https://jsonplaceholder.typicode.com/users/" + userID2)
-// if err != nil {
-// fmt.Println(err)
-// }
-// defer req.Body.Close()
+// 	defer req1.Body.Close()
+// 	response1, err := ioutil.ReadAll(req1.Body)
+// 	if err != nil {
+// 		fmt.Println(err)
+// 	}
 
-// response, err := ioutil.ReadAll(req.Body)
-// if err != nil {
-// fmt.Println(err)
-// }
+// 	userID2 := c.Param("id2")
+// 	req2, err := http.Get("https://jsonplaceholder.typicode.com/users/" + userID2)
+// 	if err != nil {
+// 		fmt.Println(err)
+// 	}
 
-// return string(response)
+// 	defer req2.Body.Close()
+// 	response2, err := ioutil.ReadAll(req2.Body)
+// 	if err != nil {
+// 		fmt.Println(err)
+// 	}
 
-// }
-
-// else {
-
-// // // getUser1
-// // req1, err := http.Get("https://jsonplaceholder.typicode.com/users/" + userID1)
-// // if err != nil {
-// // fmt.Println(err)
-// // }
-// // defer req1.Body.Close()
-
-// // response1, err := ioutil.ReadAll(req1.Body)
-// // if err != nil {
-// // fmt.Println(err)
-// // }
-// // log.Println(response1)
-
-// //getUser2
-// req2, err := http.Get("https://jsonplaceholder.typicode.com/users/" + userID2)
-// if err != nil {
-// fmt.Println(err)
-// }
-// defer req2.Body.Close()
-
-// response2, err := ioutil.ReadAll(req2.Body)
-// if err != nil {
-// fmt.Println(err)
+	// fmt.Fprintf(c.Writer, string(response))
 // }
 
-// return string(response2)
-// }
+// func getJSON(userID string) string {
 
-}
+// 	req, err := http.Get("https://jsonplaceholder.typicode.com/users/" + userID)
+// 	if err != nil {
+// 		fmt.Println(err)
+// 	}
+// 	defer req.Body.Close()
+
+// 	response, err := ioutil.ReadAll(req.Body)
+// 	if err != nil {
+// 		fmt.Println(err)
+// 	}
+// 	return string(response)
+// }
