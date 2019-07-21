@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
 	"io/ioutil"
 	"net/http"
@@ -8,7 +9,6 @@ import (
 	// "io/ioutil"
 	// "log"
 	// "net/http"
-
 	"github.com/gin-gonic/gin"
 )
 
@@ -47,9 +47,10 @@ func main() {
 func handleRequest() {
 
 	router.GET("/", home)
-	router.GET("/users", getUser)
+	router.GET("/users/:id/:id2", getTwoUser)
 	router.GET("/users/:id", getOneUser)
-	// router.GET("/users/:id1/:id2", getTwoUser)
+	router.GET("/users", getUser)
+
 }
 
 func home(c *gin.Context) {
@@ -83,37 +84,62 @@ func getOneUser(c *gin.Context) {
 	if err != nil {
 		fmt.Println(err)
 	}
+
 	fmt.Fprintf(c.Writer, string(response))
 }
 
-// func getTwoUser(c *gin.Context) {
+func getTwoUser(c *gin.Context) {
 
-// 	userID1 := c.Param("id1")
-// 	req1, err := http.Get("https://jsonplaceholder.typicode.com/users/" + userID1)
-// 	if err != nil {
-// 		fmt.Println(err)
-// 	}
+	// get user 1
+	userID1 := c.Param("id")
+	req1, err := http.Get("https://jsonplaceholder.typicode.com/users/" + userID1)
+	if err != nil {
+		fmt.Println(err)
+	}
+	defer req1.Body.Close()
+	response1, err := ioutil.ReadAll(req1.Body)
+	if err != nil {
+		fmt.Println(err)
+	}
 
-// 	defer req1.Body.Close()
-// 	response1, err := ioutil.ReadAll(req1.Body)
-// 	if err != nil {
-// 		fmt.Println(err)
-// 	}
+	// get user 2
+	userID2 := c.Param("id2")
+	req2, err := http.Get("https://jsonplaceholder.typicode.com/users/" + userID2)
+	if err != nil {
+		fmt.Println(err)
+	}
+	defer req2.Body.Close()
+	response2, err := ioutil.ReadAll(req2.Body)
+	if err != nil {
+		fmt.Println(err)
+	}
 
-// 	userID2 := c.Param("id2")
-// 	req2, err := http.Get("https://jsonplaceholder.typicode.com/users/" + userID2)
-// 	if err != nil {
-// 		fmt.Println(err)
-// 	}
+	// append response to slice
+	userList := []user{}
+	var tmpUser user
 
-// 	defer req2.Body.Close()
-// 	response2, err := ioutil.ReadAll(req2.Body)
-// 	if err != nil {
-// 		fmt.Println(err)
-// 	}
+	err = json.Unmarshal(response1, &tmpUser)
+	if err != nil {
+		fmt.Println(err)
+	}
+	userList = append(userList, tmpUser)
 
-	// fmt.Fprintf(c.Writer, string(response))
-// }
+	err = json.Unmarshal(response2, &tmpUser)
+	if err != nil {
+		fmt.Println(err)
+	}
+	userList = append(userList, tmpUser)
+
+	responseUser, err := json.Marshal(userList)
+	if err != nil {
+		fmt.Println(err)
+	}
+
+	fmt.Fprintf(c.Writer, string(responseUser))
+
+	// fmt.Fprintf(c.Writer, string(response1) + "\n")
+	// fmt.Fprintf(c.Writer, string(response2))
+}
 
 // func getJSON(userID string) string {
 
